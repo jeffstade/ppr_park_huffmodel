@@ -112,7 +112,6 @@ function displayHuffOnMap(map, originProbabilities, nameProperty) {
 
   let destinationsToShowFC = turf.featureCollection(destinationsToShowCenters);
   // destinationsToShowFC = Huff.setDestinationColors(destinationsToShowFC);
-  console.log(uniqueDestinationNames);
   destinationLayer = L.geoJSON(destinationsToShowFC, {
     onEachFeature(f, l) {
       let attractivenessString = '';
@@ -126,7 +125,7 @@ function displayHuffOnMap(map, originProbabilities, nameProperty) {
       if (uniqueDestinationNames.includes(point.properties.PUBLIC_NAME)) {
         return L.marker(latlng, { icon: getColoredIcon(point.properties.color) });
       }
-      if (showNondominantParks) {
+      if (document.getElementById('showNondominant').checked) {
         return L.marker(latlng, { icon: getSmallDot() });
       }
       return null;
@@ -195,56 +194,35 @@ function fetchDatasets(originDataSet, destinationDataSet, updateBounds = null) {
       origins = origData;
       fetch(destinationDataSet).then(resp => resp.json()).then(destData => {
         destinations = destData;
-
-        // SPECIAL CASE TO GET ADD'L PROPERTIES FOR PARKS
-        if (destinationDataSet === 'data/PPR_Properties.geojson') {
-          fetch('data/facility_properties.json')
-            .then(resp => resp.json()).then(propData => {
-              let properties = Object.keys(propData[7]);
-              let newFeatures = [];
-              (Object.keys(destinations.features)).forEach(i => {
-                if (propData[i]) {
-                  properties.forEach(p => {
-                    destinations.features[i].properties[p] = propData[i][p];
-                  });
-                  newFeatures.push(destinations.features[i]);
-                }
-              });
-              console.log(newFeatures);
-              destinations.features = newFeatures;
-              destinationProperties = getFeatureProperties(destinations.features[6]);
-              destPropText.innerHTML = getFeatureProperties(destinations.features[0]);
-              let propertiesColored = Huff.setDestinationColors(destinations);
-              if (updateBounds) {
-                let bounds = turf.bbox(destinations);
-                customMap.fitBounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]]);
+        fetch('data/facility_properties.json')
+          .then(resp => resp.json()).then(propData => {
+            let properties = Object.keys(propData[7]);
+            let newFeatures = [];
+            (Object.keys(destinations.features)).forEach(i => {
+              if (propData[i]) {
+                properties.forEach(p => {
+                  destinations.features[i].properties[p] = propData[i][p];
+                });
+                newFeatures.push(destinations.features[i]);
               }
-              runHuffModel(
-                origins,
-                propertiesColored,
-                dTSlider.value,
-                dESlider.value,
-                uniqueName,
-                attractivenessProperties,
-              );
             });
-        } else {
-          destinationProperties = getFeatureProperties(destinations.features[0]);
-          destPropText.innerHTML = getFeatureProperties(destinations.features[0]);
-          let propertiesColored = Huff.setDestinationColors(destinations);
-          if (updateBounds) {
-            let bounds = turf.bbox(destinations);
-            customMap.fitBounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]]);
-          }
-          runHuffModel(
-            origins,
-            propertiesColored,
-            dTSlider.value,
-            dESlider.value,
-            uniqueName,
-            attractivenessProperties,
-          );
-        }
+            destinations.features = newFeatures;
+            destinationProperties = getFeatureProperties(destinations.features[6]);
+            destPropText.innerHTML = getFeatureProperties(destinations.features[0]);
+            let propertiesColored = Huff.setDestinationColors(destinations);
+            if (updateBounds) {
+              let bounds = turf.bbox(destinations);
+              customMap.fitBounds([[bounds[1], bounds[0]], [bounds[3], bounds[2]]]);
+            }
+            runHuffModel(
+              origins,
+              propertiesColored,
+              dTSlider.value,
+              dESlider.value,
+              uniqueName,
+              attractivenessProperties,
+            );
+          });
       });
     });
 }
@@ -266,17 +244,8 @@ let datasetinputs = document.getElementsByClassName('datasetinputs');
 
 function getDatasets(event) {
   let orig;
-  let dest;
-  let destDatasetURL = document.getElementById('customDestinationURLSettings');
+  let dest =  'data/PPR_Properties.geojson';
   let originDatasetURL = document.getElementById('originDatasetURL');
-
-  if (document.getElementById('destDataset').value === 'customurl') {
-    destDatasetURL.style.display = 'block';
-    dest = document.getElementById('destDatasetURL').value;
-  } else {
-    destDatasetURL.style.display = 'none';
-    dest = data[document.getElementById('destDataset').value];
-  }
 
   if (document.getElementById('originDataset').value === 'customurl') {
     originDatasetURL.style.display = 'block';
@@ -293,33 +262,13 @@ function getDatasets(event) {
 
   if (dest === 'data/PPR_Properties.geojson') {
     uniqueName = 'PUBLIC_NAME';
-
-    //    attractivenessProperties = 'ACREAGE';
-    attractivenessProperties = 'programNum';
+    attractivenessProperties = 'programNum,centrality';
     faIcon = 'fa-tree';
     dTSlider.setAttribute('min', 1);
     dTSlider.setAttribute('max', 10);
     dTSlider.setAttribute('step', 1);
-    dTSlider.value = 7;
-    dESlider.value = 1;
-  } else if (dest === 'https://kiosks.bicycletransit.workers.dev/phl') {
-    uniqueName = 'name';
-    attractivenessProperties = 'bikesAvailable,totalDocks,docksAvailable';
-    faIcon = 'fa-bicycle';
-    dTSlider.setAttribute('min', 0.1);
-    dTSlider.setAttribute('max', 1.5);
-    dTSlider.setAttribute('step', 0.1);
-    dTSlider.value = 0.5;
+    dTSlider.value = 9;
     dESlider.value = 1.5;
-  } else {
-    uniqueName = document.getElementById('destUniqueName').value;
-    attractivenessProperties = '';
-    faIcon = 'fa-map-marker';
-    dTSlider.setAttribute('min', 1);
-    dTSlider.setAttribute('max', 10);
-    dTSlider.setAttribute('step', 1);
-    dTSlider.value = 7;
-    dESlider.value = 1;
   }
   updateRangeValues();
 

@@ -1,3 +1,11 @@
+#header {
+  margin: 20px 0px;
+  padding: 0px 20px;
+}
+
+.setting {
+  margin: 20px 0;
+}
 #map
 {
     width: auto;
@@ -52,7 +60,7 @@
   }
   
   .flex-container > div {
-    background-color: #f1f1f1;
+    background-color: rgb(240, 240, 240);
     margin: 10px;
     padding: 20px;
   }
