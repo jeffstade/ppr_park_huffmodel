@@ -9,12 +9,9 @@
 <link rel="stylesheet" href="style/bootstrap.min.css">
 </head>
 <body>
-    <div style="width:100%" id="header">
-        <h1>Philadelphia Parks and Recreation – Visitor Predictions</h1>
-    </div>
 <div class="flex-container">
 
-    <div style="width:20%">
+    <div style="width:30%">
 
         <div id="controls">
             <div>
@@ -53,13 +50,21 @@
             </div>
             </div>
             <div class="setting">
-            <h6>Attractiveness factors: <input type="text" size="30" id="attractivenessValue"></h6>
-            <p>Attractiveness factors are the qualities about the destination that encourage a resident to vist.</p> 
-            <p>Enter a comma-separated list of properties to use for attractiveness. The following properties are available for the destination, although only numeric properties can be used as factors: <span id="destinationProperties"></span>
+            <h6>Attractiveness factors<input type="text" disabled size="30" id="attractivenessValue"></h6>
+            <p class="d-none">Enter a comma-separated list of properties to use for attractiveness. The following properties are available for the destination, although only numeric properties can be used as factors: <span id="destinationProperties"></span></p>
+            </div>
+            <div class="setting">
+            <h6>Edited program counts</h6>
+            <ul id="propertyedits">
+            </ul>
+            <p id="currentSelection">Select facility to edit program count.</p>
+            
+            <button id="saveedit">Update map</button>
+            <button id="reset">Remove edits</button>
             </div>
             </div>
         </div>
-    <div style="width:80%">
+    <div style="width:70%">
         <div id="map"></div>
     </div>
     </div>

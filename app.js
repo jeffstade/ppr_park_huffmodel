@@ -3,6 +3,7 @@ let L = require('leaflet');
 let Huff = require('huffmodel');
 let turf = require('@turf/turf');
 let isUrl = require('is-url');
+const { featureEach } = require('@turf/turf');
 // Initialize the map
 let customMap = L.map('map', {
   scrollWheelZoom: false,
@@ -19,8 +20,17 @@ let showNondominantParks = true;
 
 let uniqueName;
 let attractivenessProperties;
+let currentSelection = document.getElementById('currentSelection');
 
 let faIcon = 'fa-tree';
+
+let selectedProgramId;
+let selectedProgramName;
+let selectedProgramCount;
+
+function updateProgramCount(programName) {
+  console.log(programName);
+}
 
 let dTSlider = document.getElementById('distanceThreshold');
 let dTOutput = document.getElementById('distanceThresholdValue');
@@ -109,7 +119,7 @@ function displayHuffOnMap(map, originProbabilities, nameProperty) {
     feature.properties = c.properties;
     destinationsToShowCenters.push(feature);
   });
-
+  console.log(destinations);
   let destinationsToShowFC = turf.featureCollection(destinationsToShowCenters);
   // destinationsToShowFC = Huff.setDestinationColors(destinationsToShowFC);
   destinationLayer = L.geoJSON(destinationsToShowFC, {
@@ -119,7 +129,16 @@ function displayHuffOnMap(map, originProbabilities, nameProperty) {
       attractivenessProperties.split(',').forEach(prop => {
         attractivenessString += `${prop}: ${f.properties[prop]}<br />`;
       });
-      l.bindPopup(`<b style="color:${f.properties.color}">${f.properties[uniqueName]}</b><br /> ${attractivenessString}`);
+      l.bindPopup(`<b style="color:${f.properties.color}">${f.properties[uniqueName]}</b><br />
+                  ${attractivenessString}`);
+      l.on({
+        click() {
+          currentSelection.innerHTML = `<b style="color:${f.properties.color}">${f.properties[uniqueName]}</b>: <span id='origProgramCount'>${f.properties.programNum}</span> → <input id='newProgramCount' size='5' class='edits' value=""></input>`;
+          selectedProgramId = f.properties.OBJECTID;
+          selectedProgramName = f.properties.PUBLIC_NAME;
+          selectedProgramCount = f.properties.programNum;
+        },
+      });
     },
     pointToLayer(point, latlng) {
       if (uniqueDestinationNames.includes(point.properties.PUBLIC_NAME)) {
@@ -280,3 +299,37 @@ for (let i = 0; i < datasetinputs.length; i++) {
 }
 
 getDatasets();
+
+// RESET DATASETS
+let reset = document.getElementById('reset');
+
+let saveedit = document.getElementById('saveedit');
+let propertyedits = document.getElementById('propertyedits');
+
+reset.addEventListener('click', () => {
+  if (confirm('Are you sure you want to clear edits?') == true) {
+    getDatasets();
+    propertyedits.innerHTML = '';
+  }
+});
+
+saveedit.addEventListener('click', () => {
+  let li = document.createElement('li');
+  li.appendChild(document.createTextNode(`${selectedProgramName}: ${selectedProgramCount} → ${newProgramCount.value}`));
+  propertyedits.appendChild(li);
+  selectedProgramCount = newProgramCount.value;
+  origProgramCount.innerText = newProgramCount.value;
+  destinations.features.forEach((destination, i) =>  {
+    if (destination.properties.OBJECTID == selectedProgramId) {
+      destinations.features[i].properties.programNum = parseInt(newProgramCount.value, 10);
+      runHuffModel(
+        origins,
+        destinations,
+        dTSlider.value,
+        dESlider.value,
+        uniqueName,
+        attractivenessProperties,
+      );
+    }
+  });
+});
