@@ -1,6 +1,8 @@
 # Philadelphia Parks and Rec Huff Model
 
-This is a sample Huff Model of Philadelphia Parks and Recreation data. It uses [the `huffmodel` npm package](https://github.com/jeffstern/huffmodel).
+This is a sample Huff Model of Philadelphia Parks and Recreation data.
+
+It uses [the `huffmodel` npm package](https://github.com/jeffstern/huffmodel).
 
 ## Installation guide
 ```
